@@ -1,4 +1,3 @@
-#jinja2: lstrip_blocks: True
 network:
   version: 2
   ethernets:
@@ -12,9 +11,8 @@ network:
         - {{ networking.gateway | default(ansible_default_ipv4.gateway) }}
 {% if networking.suffix is defined %}
         search:
-  {% for suffix in networking.suffixes %}
+{% for suffix in networking.suffixes %}
         - {{ suffix }}
-  {% endfor %}
+{% endfor %}
 {% endif %}
-
   
