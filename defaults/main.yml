@@ -1,0 +1,10 @@
+disable_root: true
+local_acct:
+  username: ubuntu
+  password_hash: ""
+  shell: /bin/bash
+  create_home: true
+  sudoer: true
+  create_ssh_dir: true
+  public_ssh_key: ""
+update_image: true

@@ -1,0 +1,104 @@
+- name: Cleanup yum cache
+  ansible.builtin.command: yum -y --enablerepo='*' clean all
+  become: true
+  when:
+    - ansible_os_family | lower == ""redhat""
+    - update_image
+  tags:
+    - skip_ansible_lint
+
+- name: Cleanup apt cache
+  ansible.builtin.apt:
+    autoclean: true
+  become: true
+  when:
+    - ansible_os_family | lower == "debian"
+    - update_image
+
+- name: RedHat || Remove tmp files
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}"
+  become: true
+  loop:
+    - "/root/anaconda-ks.cfg"
+    - "/root/install.log"
+    - "/root/install.log.syslog"
+    - "/tmp/*"
+    - "/var/log/anaconda*"
+    - "/var/log/*.log"
+    - "/var/lib/dbus/machine-id"
+    - "/var/lib/systemd/random-seed"
+    - "/var/tmp/*"
+  when: ansible_os_family | lower == 'redhat'
+
+- name: Debian || Remove tmp files
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}"
+  become: true
+  loop:
+    - "/tmp/*"
+    - "/var/lib/dbus/machine-id"
+    - "/var/lib/systemd/random-seed"
+    - "/var/log/*.log"
+    - "/var/tmp/*"
+  when: ansible_os_family | lower == 'debian'
+
+- name: Cleanup cloud-init
+  block:
+    - name: Stop/Disable cloud-init service
+      ansible.builtin.service:
+        name: cloud-init
+        state: stopped
+        enabled: false
+      become: true
+
+    - name: Remove cloud init files
+      ansible.builtin.file:
+        state: absent
+        path: /var/lib/cloud/*
+      become: true
+
+    - name: Create cloud-init.disabled file
+      ansible.builtin.file:
+        state: touch
+        path: /etc/cloud/cloud-init.disabled
+        mode: "0644"
+      become: true
+
+    - name: Check if machine-id is present
+      ansible.builtin.stat:
+        path: /etc/machine-id
+      register: machine_id
+      become: true
+
+    - name: Reset machine-id
+      ansible.builtin.command:
+        cmd: truncate -s 0 /etc/machine-id
+      become: true
+      changed_when: machine_id.stat.size != 0
+      when:
+        - machine_id.stat.exists
+        - machine_id.stat.size > 0
+
+    - name: Create machine-id if not exists
+      ansible.builtin.file:
+        state: touch
+        path: /etc/machine-id
+        owner: root
+        group: root
+        mode: "0444"
+      become: true
+
+- name: Zero out free space
+  ansible.builtin.command:
+    cmd: dd if=/dev/zero of=/EMPTY bs=1M | true
+  become: true
+  changed_when: true
+
+- name: Sync data
+  ansible.builtin.command:
+    cmd: sync
+  changed_when: true
+  become: true

@@ -1,0 +1,12 @@
+- name: Include system
+  ansible.builtin.include_tasks:
+    file: system.yml
+
+- name: Include updates
+  ansible.builtin.include_tasks:
+    file: updates.yml
+  when: update_image
+
+- name: Include Cleanup
+  ansible.builtin.include_tasks:
+    file: cleanup.yml

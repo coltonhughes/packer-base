@@ -1,0 +1,5 @@
+- name: Netplan apply
+  ansible.builtin.command: netplan apply
+  become: true
+  tags:
+    - skip_ansible_lint

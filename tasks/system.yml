@@ -1,0 +1,63 @@
+---
+- name: Configure Netplan
+  ansible.builtin.template:
+    src: 00-base.yaml.j2
+    dest: /etc/netplan/00-base.yaml
+    mode: "0600"
+    owner: root
+    group: root
+  become: true
+  notify: Netplan apply
+
+- name: Create user account
+  ansible.builtin.user:
+    user: "{{ local_acct.user }}"
+    shell: "{{ local_acct.shell }}"
+    create_home: "{{ local_acct.create_home }}"
+    password: "{{ local_acct.password_hash }}"
+  become: true
+  when: local_acct
+
+- name: Disable root
+  ansible.builtin.user:
+    user: root
+    password: "!"
+  become: true
+  when: disable_root
+
+- name: Create ssh folder
+  ansible.builtin.file:
+    state: directory
+    path: "/home/{{ local_acct.user }}/.ssh"
+    owner: "{{ local_acct.user }}"
+    group: "{{ local_acct.user }}"
+    mode: "0700"
+  become: true
+  when:
+    - local_acct.create_ssh_dir
+    - local_acct.user is defined
+
+- name: Add user to sudoers
+  ansible.builtin.lineinfile:
+    path: "/etc/sudoers.d/{{ local_acct.user }}"
+    state: present
+    line: "{{ local_acct.user }} ALL=(ALL) NOPASSWD:ALL"
+    owner: root
+    group: root
+    mode: "0440"
+    create: true
+    validate: "visudo -c -f %s"
+  become: true
+  when:
+    - local_acct.user is defined
+    - local_acct.sudoer
+
+- name: Add ssh key to user
+  ansible.posix.authorized_key:
+    user: "{{ local_acct.user }}"
+    state: present
+    key: "{{ local_acct.public_ssh_key }}"
+  become: true
+  when:
+    - local_acct.create_ssh_dir
+    - local_acct.public_ssh_key != ""
