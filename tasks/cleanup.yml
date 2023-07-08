@@ -93,7 +93,7 @@
 
 - name: Zero out free space
   ansible.builtin.command:
-    cmd: dd if=/dev/zero of=/EMPTY bs=1M | true
+    cmd: dd if=/dev/zero of=/EMPTY bs=1M || true
   become: true
   changed_when: true
 
