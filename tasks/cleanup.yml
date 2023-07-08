@@ -2,7 +2,7 @@
   ansible.builtin.command: yum -y --enablerepo='*' clean all
   become: true
   when:
-    - ansible_os_family | lower == ""redhat""
+    - ansible_os_family | lower == "redhat"
     - update_image
   tags:
     - skip_ansible_lint
@@ -30,7 +30,7 @@
     - "/var/lib/dbus/machine-id"
     - "/var/lib/systemd/random-seed"
     - "/var/tmp/*"
-  when: ansible_os_family | lower == 'redhat'
+  when: ansible_os_family | lower == "redhat"
 
 - name: Debian || Remove tmp files
   ansible.builtin.file:
@@ -43,7 +43,7 @@
     - "/var/lib/systemd/random-seed"
     - "/var/log/*.log"
     - "/var/tmp/*"
-  when: ansible_os_family | lower == 'debian'
+  when: ansible_os_family | lower == "debian"
 
 - name: Cleanup cloud-init
   block:
