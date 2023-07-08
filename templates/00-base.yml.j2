@@ -1,20 +1,20 @@
 #jinja2: lstrip_blocks: True
 network:
-	version: 2
+  version: 2
   ethernets:
-		default:
-			match:
-				name: e*
-			dhcp4: yes
-			dhcp-identifier: mac
+    default:
+      match:
+        name: e*
+      dhcp4: yes
+      dhcp-identifier: mac
       nameservers:
         addresses:
         - {{ networking.gateway | default(ansible_default_ipv4.gateway) }}
 {% if networking.suffix is defined %}
         search:
-	{% for suffix in networking.suffixes %}
-				- {{ suffix }}
-	{% endfor %}
+  {% for suffix in networking.suffixes %}
+        - {{ suffix }}
+  {% endfor %}
 {% endif %}
 
   
