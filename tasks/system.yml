@@ -11,7 +11,7 @@
 
 - name: Create user account
   ansible.builtin.user:
-    user: "{{ local_acct.user }}"
+    user: "{{ local_acct.username }}"
     shell: "{{ local_acct.shell }}"
     create_home: "{{ local_acct.create_home }}"
     password: "{{ local_acct.password_hash }}"
@@ -28,20 +28,20 @@
 - name: Create ssh folder
   ansible.builtin.file:
     state: directory
-    path: "/home/{{ local_acct.user }}/.ssh"
-    owner: "{{ local_acct.user }}"
-    group: "{{ local_acct.user }}"
+    path: "/home/{{ local_acct.username }}/.ssh"
+    owner: "{{ local_acct.username }}"
+    group: "{{ local_acct.username }}"
     mode: "0700"
   become: true
   when:
     - local_acct.create_ssh_dir
-    - local_acct.user is defined
+    - local_acct.username is defined
 
 - name: Add user to sudoers
   ansible.builtin.lineinfile:
-    path: "/etc/sudoers.d/{{ local_acct.user }}"
+    path: "/etc/sudoers.d/{{ local_acct.username }}"
     state: present
-    line: "{{ local_acct.user }} ALL=(ALL) NOPASSWD:ALL"
+    line: "{{ local_acct.username }} ALL=(ALL) NOPASSWD:ALL"
     owner: root
     group: root
     mode: "0440"
@@ -49,12 +49,12 @@
     validate: "visudo -c -f %s"
   become: true
   when:
-    - local_acct.user is defined
+    - local_acct.username is defined
     - local_acct.sudoer
 
 - name: Add ssh key to user
   ansible.posix.authorized_key:
-    user: "{{ local_acct.user }}"
+    user: "{{ local_acct.username }}"
     state: present
     key: "{{ local_acct.public_ssh_key }}"
   become: true
