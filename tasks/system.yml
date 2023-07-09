@@ -61,3 +61,13 @@
   when:
     - local_acct.create_ssh_dir
     - local_acct.public_ssh_key != ""
+
+- name: Add apt proxy
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/10-proxy
+    content: "{{ proxy_url }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  when: proxy_url is defined
